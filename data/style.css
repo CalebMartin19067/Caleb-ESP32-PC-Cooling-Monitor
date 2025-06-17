@@ -1,0 +1,163 @@
+/* Styles code pt1 */
+
+/* Set the font for the whole page and center all text by default */
+html {
+    font-family: Arial, Helvetica, sans-serif;  /* Use Arial first, then Helvetica, then any sans-serif font */
+    text-align: center;  /* Center-align all text inside the <html> element, could be left or right etc */
+}
+
+/* Remove default spacing and center the body horizontally */
+body {
+    margin: 0px auto;  /* Remove top/bottom margin and auto-center left/right */
+}
+
+/* Style the main heading*/
+h1 {
+    font-size: 1.8rem;  /* Set text size to 1.8 rem units */
+    color: rgb(0, 0, 0);  /* Set the text color to black using RGB values, instead of white where it isnt visible */
+}
+
+/*--------------------- 
+Card grid
+---------------------*/
+
+/* Add spacing inside the content area */
+.content {
+    padding: 50px;  /* Makes a 50px space inside all sides of the .content container */
+}
+
+/* Create a flexible grid layout for card elements */
+.card-grid {
+    max-width: 800px;  /* Limit width so it's not too wide on big screens */
+    margin: 0 auto;  
+    display: grid;  
+    gap: 2rem;  
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));  
+    
+}
+
+/* Style each card container */
+.card {
+    background-color: white;  /* Set background to white */
+    box-shadow: 2px 2px 12px 1px rgba(140, 140, 140, .5);  
+    /* Add soft shadow to give 3D card look */
+}
+
+/* Style the title text inside each card */
+.card-title {
+    font-size: 1.2rem;  
+    font-weight: bold;  /* Make it bold */
+    color: #034078;  /* Dark blue color */
+}
+
+/*--------------------- 
+Button styles
+---------------------*/
+
+/* Apply base styling to all <button> elements */
+button {
+    border: none;  /* Remove default border */
+    color: #FEFCFB;  /* Set text color to near white */
+    padding: 15px 32px;  /* Add space inside the button (top/bottom 15px, sides 32px) */
+    text-align: center;  /* Center the text */
+    display: inline-block;  
+    font-size: 16px;  /* Medium text size */
+    width: 100px;  /* Set button width */
+    border-radius: 4px;  /* Slightly rounded corners */
+    transition-duration: 0.4s;  /* Smooth effect for hover changes */
+}
+
+/* Specific style for the ON button */
+.button-on {
+    background-color: #034078;  /* Blue background */
+}
+
+/* Darken the ON button when hovered */
+.button-on:hover {
+    background-color: #1282A2;
+}
+
+/* Specific style for the OFF button */
+.button-off {
+    background-color: #858585;  /* Gray background */
+}
+
+/* Darken the OFF button when hovered */
+.button-off:hover {
+    background-color: #252524;
+}
+
+/* Style for showing the LED state */
+.state {
+    font-size: 1.2rem;
+    color: #1282A2;  /* Light blue */
+}
+
+/*--------------------- 
+Navigation bar styles
+---------------------*/
+
+/* Style the top navigation bar */
+.topnav {
+    overflow: hidden;  /* Hide anything that spills outside */
+    background-color: #0A1128;  /* Set as Dark blue*/
+}
+
+/* Style all links inside the nav bar */
+.topnav a {
+    float: left;  
+    display: block;  
+    color: white;  /* White text */
+    text-align: center;  /* Center text horizontally */
+    padding: 16px 18px;  /* Add space around the text */
+    text-decoration: none; /*If there is any underlining remove it*/
+    font-size: 1.2rem;  
+}
+
+/* Change background on hover */
+.topnav a:hover { 
+    background-color: #186775;  /* Blue-green background */
+    color: white; 
+}
+
+
+.disabled {
+    pointer-events: none;  /* Disables clicking or interaction */
+}
+
+/*Dont Display the icon*/
+.topnav .icon {
+    display: none;
+}
+
+
+.topnav-right {
+    float: right;
+}
+
+/*--------------------- 
+Responsive navigation bar (for small screens)
+---------------------*/
+@media screen and (max-width: 600px) {
+
+    /* Relative meaning move to fit */
+    .topnav.responsive {
+        position: relative;
+    }
+
+    /* Set the icon in top right corner */
+    .topnav.responsive .icon {
+        position: absolute; /*?*/
+        right: 0;
+        top: 0;
+    }
+/*When the responsive class is added to .topnav, it changes layout so links stack vertically (instead of horizontally), making it mobile-friendly.*/
+
+    /*  Stack nav links vertically and align them to the left */
+    .topnav.responsive a,  /*If the navigation bar is*/
+    .topnav.responsive .topnav-right {
+        float: none;  /* Remove float */
+        display: block;  
+        text-align: left;  /*Align text to left*/
+    }
+}

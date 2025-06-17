@@ -1,0 +1,54 @@
+<!-- this is what a comment looks like -->
+
+<!DOCTYPE html>
+<!-- The <!DOCTYPE html> declaration defines that this document is an HTML5 document -->
+<html>
+<!-- <html> element is the root element of an HTML page -->
+
+<head> <!-- element contains meta information about the HTML psage -->
+    <!-- Setting the title of the webpage, make it responsive to screen size, and linking an external css for styling  -->
+    <title>Homepage</title>
+    <!--The <title> element specifies a title for the HTML page (which is shown in the browser's title bar or in the page's tab) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body> <!-- The <body> element defines the document's body, and is a container for all the visible contents, such as headings, paragraphs, 
+    images, hyperlinks, tables, lists, etc.-->
+
+    <!--Creating a top navigation bar with links to different pages and a responsive menu icon -->
+    <div class="topnav" id="myTopnav">
+        <a href="#" class="disabled">Homepage</a>
+        <div class="topnav-right">
+            <a href="inputs.html">Inputs</a>
+            <a href="outputs.html">Outputs</a>
+        </div>
+        <a href="javascript:void(0);" class="icon" onclick="handleNavBar()">
+            <i class="fa fa-bars"></i>
+        </a>
+    </div>
+    <!-- Creating the main content area with a welcome message, description, and a card to control an LED -->
+    <div class="content">
+        <h1>Caleb's Web Server</h1> <!-- The <h1> element defines a large heading -->
+        <p>Here is some <bold>simple</bold> input output for the red LED. <!--The <p> element defines a paragraph-->
+            But look on the Inputs and Outputs pages for more detailed stuff.
+        </p>
+        <div class="card-grid">
+            <div class="card">
+                <p class="card-title">Built-in LED</p>
+                <p>
+                    <a href="on"><button class="button-on">ON</button></a>
+                    <a href="off"><button class="button-off">OFF</button></a>
+                </p>
+                <p class="state">The led is: %STATE%</p>
+            </div>
+            <!--Stuff added-->
+        </div> class="card">
+        <p class="card-title">Temperature</p>
+        <p class="reading"><span id="press"></span> hpa</p>
+      </div>
+    <!-- Linking an external JavaScript file that adds interactivity to the page-->
+    <script src="script.js"></script>
+</body>
+
+</html>
