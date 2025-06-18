@@ -1,8 +1,7 @@
 #include <Arduino.h>
 #include <WiFi.h>
-#include <AsyncUDP.h>
-#include <ESPAsyncWebServer.h>
-#include <LittleFS.h>
+//#include <AsyncUDP.h>
+//#include <ESPAsyncWebServer.h> //drop AsyncWebServer for manual client handling only
 #include <Arduino_JSON.h>
 #include <Adafruit_BMP280.h>
 #include <Adafruit_Sensor.h>
@@ -11,16 +10,18 @@
 #include "arduino_secrets.h" //defined SSID/password in this library
 //////////////////////////////////
 // Variables for my network and wifi status
-#define SSID "T8-Arduino"
-#define PASSWORD "T8-Arduino"
+const char SSID[] =  SECRET_SSID; 
+const char PASSWORD[] = SECRET_PASS;
 ///////////////////////////////////
 
 // Create AsyncWebServer object on port 80
-AsyncWebServer server(80);
+//AsyncWebServer server(80);
 // Create event source on /events
-AsyncEventSource events("/events");
+//AsyncEventSource events("/events");
 // Create a separate WiFi server for manual socket handling
-WiFiServer manualServer(81); // Changed from server.available()
+
+
+WiFiServer manualServer(80); // Changed from server.available()
 
 // json variable to hold sensor readings
 JSONVar readings;
@@ -34,12 +35,11 @@ Adafruit_AHTX0 aht;
 Adafruit_BMP280 bmp; //BMP280 connect to ESP =32 I2C (GPIO 21 = SDA, GPIO)
 
 const byte LEDPIN = LED_BUILTIN; 
-const byte SENSORPIN = SENSORPIN;
+
 
 String ledState;
 
 //---------------------------------------------
-// Intialize LittleFS
 void initBMP()
 {
   if (!bmp.begin(0x77)) // what does 0x77 signal? - the I2C address of the BMP280 sensor.
@@ -55,20 +55,6 @@ String getSensorReadings()
   readings["temperature"] = String(bmp.readTemperature() / 2);
   String jsonString = JSON.stringify(readings);
   return jsonString;
-}
-
-// LittleFS has began it will be true,
-// if not (!) it will return an error
-void initLittleFS()
-{
-  if (!LittleFS.begin(true))
-  {
-    Serial.println("An error has occured while mounting LittleFS");
-  }
-  else
-  {
-    Serial.println("LittleFS mounted successfully");
-  }
 }
 
 // initialize Wifi
@@ -89,6 +75,7 @@ void initWifi()
 }
 
 // Return the state of the physical LED when called on
+// change
 String processor(const String &VAR)
 {
   if (VAR == "STATE")
@@ -110,8 +97,6 @@ String processor(const String &VAR)
 void setup()
 {
   pinMode(LEDPIN, OUTPUT);
-  pinMode(SENSORPIN, INPUT);
-
   Serial.begin(115200);
   while (!Serial)
   {
@@ -119,44 +104,11 @@ void setup()
   }
 
   initWifi();
-
-  //initLittleFS();
-  server.begin();
+  //server.begin();
   manualServer.begin(); // Start the manual socket server
-
   initBMP();
-
   pinMode(LEDPIN, OUTPUT);
-
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
-            { request->send(LittleFS, "/index.html", "text/html", false, processor); });
-
-  server.serveStatic("/", LittleFS, "/");
-
-  server.on("/on", HTTP_GET, [](AsyncWebServerRequest *request)
-            {
-              digitalWrite(LEDPIN, HIGH);
-              request->send(LittleFS, "/index.html", "text/html", false, processor);
-            });
-
-  server.on("/readings", HTTP_GET, [](AsyncWebServerRequest *request)
-            {
-              String json = getSensorReadings();
-              request->send(200, "application/json", json);
-              json = String();
-            });
-
-  events.onConnect([](AsyncEventSourceClient *client)
-                   {
-                     if (client->lastId())
-                     {
-                       Serial.printf("Client reconnected: Last message ID that it got is: %u\n", client->lastId());
-                     }
-                     client->send("hello!", NULL, millis(), 10000);
-                   });
-  server.addHandler(&events);
-
-  server.begin();
+  
 }
 
 // loop for manual client handling
@@ -195,9 +147,9 @@ void loop()
 
             client.println("<h1>Sensor stuff</h1>");
 
-            int sensorReading = analogRead(SENSORPIN);
-            client.print("RAW Sensor value is ");
-            client.print(sensorReading);
+            float temp = bmp.readTemperature();
+            float pres = bmp.readPressure() / 100.0F; // in HPA
+            client.printf("BMP280. %.2f °C, %.1f hPa<br><br>", temp, pres);
 
             byte LEDReading = digitalRead(LEDPIN);
             if (LEDReading == HIGH)
