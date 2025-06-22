@@ -108,13 +108,14 @@ void setup()
   manualServer.begin(); // Start the manual socket server
   initBMP();
   pinMode(LEDPIN, OUTPUT);
-  
+  delay(5000);
 }
 
 // loop for manual client handling
 void loop()
 {
   WiFiClient client = manualServer.available(); // Changed to match correct server
+ // Serial.println(client);
   if (client)
   {
     Serial.println("new client");
