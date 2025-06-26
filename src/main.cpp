@@ -29,7 +29,7 @@ JSONVar readings;
 // timer variables 
 unsigned long lastTime = 0;
 unsigned long timerDelay = 30000;
-// Routing the LEDPIN to the onboard LED on ESP32
+// Routing the LEDPIN to the onboard LED on ESP32=
 // create a sensor object
 Adafruit_AHTX0 aht;
 Adafruit_BMP280 bmp; //BMP280 connect to ESP =32 I2C (GPIO 21 = SDA, GPIO)
@@ -145,13 +145,12 @@ void loop()
             client.println("<!DOCTYPE HTML>");
             client.println("<html>");
             client.println("<style>html{font-family: Arial, H }</style>");
-
             client.println("<h1>Sensor stuff</h1>");
 
             float temp = bmp.readTemperature();
             float pres = bmp.readPressure() / 100.0F; // in HPA
-            client.printf("BMP280. %.2f °C, %.1f hPa<br><br>", temp, pres);
-
+            client.printf("BMP280: %.2f &deg;C, %.1f hPa<br><br>", temp, pres);
+            //changed to &deg;C and fixed spacing for better readability
             byte LEDReading = digitalRead(LEDPIN);
             if (LEDReading == HIGH)
             {
