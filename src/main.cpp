@@ -20,7 +20,7 @@ const char PASSWORD[] = SECRET_PASS;
 //AsyncEventSource events("/events");
 // Create a separate WiFi server for manual socket handling
 
-
+//HAN Notes - what object is this creating?
 WiFiServer manualServer(80); // Changed from server.available()
 
 // json variable to hold sensor readings
@@ -34,11 +34,13 @@ unsigned long timerDelay = 30000;
 Adafruit_AHTX0 aht;
 Adafruit_BMP280 bmp; //BMP280 connect to ESP =32 I2C (GPIO 21 = SDA, GPIO)
 
+//HAN Notes - what is this chunk of code for?
 const byte LEDPIN = LED_BUILTIN; 
-
-
 String ledState;
 
+/*
+  * HAN Notes - give me a brief overview of the method
+  */
 //---------------------------------------------
 void initBMP()
 {
@@ -68,6 +70,7 @@ void initWifi()
     Serial.print('.');
     delay(1000);
   }
+  //HAN Notes - might be good to send this to the tft screen as well
   Serial.println("Connect to ");
   Serial.println(SSID);
   Serial.print("Use http://");
@@ -76,6 +79,7 @@ void initWifi()
 
 // Return the state of the physical LED when called on
 // change
+//HAN Notes - explain why you might call on it
 String processor(const String &VAR)
 {
   if (VAR == "STATE")
@@ -145,6 +149,11 @@ void loop()
             client.println("<!DOCTYPE HTML>");
             client.println("<html>");
             client.println("<style>html{font-family: Arial, H }</style>");
+<<<<<<< HEAD
+=======
+//HAN Notes - customise this to your brief and what you want to monitor and be able to adjust
+            //----------------
+>>>>>>> df811044da9781a805532a6e62facedcfa785e84
             client.println("<h1>Sensor stuff</h1>");
 
             float temp = bmp.readTemperature();
@@ -163,7 +172,7 @@ void loop()
 
             client.print("Click <a href=\"H\">here</a> turn the LED on<br>");
             client.print("Click <a href=\"L\">here</a> turn the LED off<br>");
-
+   //----------------
             client.println("</html>");
             break;
           }
@@ -176,7 +185,8 @@ void loop()
         {
           currentLine += c;
         }
-
+//HAN Notes - customise this to your brief and what you want to monitor and be able to adjust
+            //----------------
         if (currentLine.endsWith("GET /H"))
         {
           digitalWrite(LEDPIN, HIGH); // GET /H turns the LED on
@@ -185,6 +195,7 @@ void loop()
         {
           digitalWrite(LEDPIN, LOW); // GET /L turns the LED off
         }
+           //----------------
       }
     }
     client.stop();
