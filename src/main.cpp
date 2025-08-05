@@ -20,7 +20,7 @@ const char PASSWORD[] = SECRET_PASS;
 //AsyncEventSource events("/events");
 // Create a separate WiFi server for manual socket handling
 
-//HAN Notes - what object is this creating?
+
 WiFiServer manualServer(80); // Changed from server.available()
 
 // json variable to hold sensor readings
@@ -34,13 +34,9 @@ unsigned long timerDelay = 30000;
 Adafruit_AHTX0 aht;
 Adafruit_BMP280 bmp; //BMP280 connect to ESP =32 I2C (GPIO 21 = SDA, GPIO)
 
-//HAN Notes - what is this chunk of code for?
 const byte LEDPIN = LED_BUILTIN; 
 String ledState;
 
-/*
-  * HAN Notes - give me a brief overview of the method
-  */
 //---------------------------------------------
 void initBMP()
 {
@@ -70,8 +66,7 @@ void initWifi()
     Serial.print('.');
     delay(1000);
   }
-  //HAN Notes - might be good to send this to the tft screen as well
-  Serial.println("Connect to ");
+  Serial.println("Connected to ");
   Serial.println(SSID);
   Serial.print("Use http://");
   Serial.println(WiFi.localIP());
@@ -79,7 +74,6 @@ void initWifi()
 
 // Return the state of the physical LED when called on
 // change
-//HAN Notes - explain why you might call on it
 String processor(const String &VAR)
 {
   if (VAR == "STATE")
@@ -144,20 +138,35 @@ void loop()
             client.println("HTTP/1.1 200 OK");
             client.println("Content-Type: text/html");
             client.println("Connection: close");
-            client.println("Refresh: 5");
+            client.println("Refresh: 5"); //auto-refresh page every 5 seconds
             client.println();
-            client.println("<!DOCTYPE HTML>");
-            client.println("<html>");
-            client.println("<style>html{font-family: Arial, H }</style>");
-<<<<<<< HEAD
-=======
-//HAN Notes - customise this to your brief and what you want to monitor and be able to adjust
-            //----------------
->>>>>>> df811044da9781a805532a6e62facedcfa785e84
-            client.println("<h1>Sensor stuff</h1>");
+            client.println("<!DOCTYPE HTML>"); 
+            //HERE
+            client.println("<html>"); //html structure
+            client.println("<head>"); //html structure
+            //<head contains title and styles
+            client.println("<meta charset='UTF-8'>");
+            client.println("<meta name='viewport' content='width=device-width, initial-scale=1'>");
+            client.println("<title>PC AMBIENT MONITOR</title>");
+            
+            client.println("<style>");
+
+            client.println("body {background-color:#1e1e2f; font family: Arial; color: white; display: flex; flex-direction; column; align-items: center; padding: 20px; }");
+            client.println(".box { background-color: #2a2a40; padding: 20px border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0,3); text-align center; width: 300px;}");
+            client.println(".reading { font-size: 28px; margin: 10px 0; }");
+
+            client.println("</style>");
+            client.println("</head>"); //html structure
+            
+            client.println("<body>"); //html structure
+            
+            client.println("<div class= 'box'>");
+            
+            client.println("<h1>PC AMBIENT MONITOR</h1>");
 
             float temp = bmp.readTemperature();
             float pres = bmp.readPressure() / 100.0F; // in HPA
+
             client.printf("BMP280: %.2f &deg;C, %.1f hPa<br><br>", temp, pres);
             //changed to &deg;C and fixed spacing for better readability
             byte LEDReading = digitalRead(LEDPIN);
@@ -172,7 +181,8 @@ void loop()
 
             client.print("Click <a href=\"H\">here</a> turn the LED on<br>");
             client.print("Click <a href=\"L\">here</a> turn the LED off<br>");
-   //----------------
+
+            //HERE
             client.println("</html>");
             break;
           }
@@ -185,8 +195,7 @@ void loop()
         {
           currentLine += c;
         }
-//HAN Notes - customise this to your brief and what you want to monitor and be able to adjust
-            //----------------
+
         if (currentLine.endsWith("GET /H"))
         {
           digitalWrite(LEDPIN, HIGH); // GET /H turns the LED on
@@ -195,7 +204,6 @@ void loop()
         {
           digitalWrite(LEDPIN, LOW); // GET /L turns the LED off
         }
-           //----------------
       }
     }
     client.stop();
