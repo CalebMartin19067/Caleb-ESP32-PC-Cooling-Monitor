@@ -10,8 +10,8 @@
 #include "arduino_secrets.h" //defined SSID/password in this library
 //////////////////////////////////
 // Variables for my network and wifi status
-const char SSID[] =  SECRET_SSID; 
-const char PASSWORD[] = SECRET_PASS;
+const char SSID[] = "T8-Arduino";
+const char PASSWORD[] = "T8-Arduino";
 ///////////////////////////////////
 
 // Create AsyncWebServer object on port 80
@@ -151,7 +151,7 @@ void loop()
             
             client.println("<style>");
 
-            client.println("body {background-color:#1e1e2f; font family: Arial; color: white; display: flex; flex-direction; column; align-items: center; padding: 20px; }");
+            client.println("body {background-color:#1e1e2f; font-family: Arial; color: white; display: flex; flex-direction: column; align-items: center; padding: 20px; }");
             client.println(".box { background-color: #2a2a40; padding: 20px border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0,3); text-align center; width: 300px;}");
             client.println(".reading { font-size: 28px; margin: 10px 0; }");
 
@@ -161,29 +161,16 @@ void loop()
             client.println("<body>"); //html structure
             
             client.println("<div class= 'box'>");
-            
-            client.println("<h1>PC AMBIENT MONITOR</h1>");
-
+            client.println("<h2>PC Ambient Monitor</h2>");
             float temp = bmp.readTemperature();
-            float pres = bmp.readPressure() / 100.0F; // in HPA
-
-            client.printf("BMP280: %.2f &deg;C, %.1f hPa<br><br>", temp, pres);
-            //changed to &deg;C and fixed spacing for better readability
-            byte LEDReading = digitalRead(LEDPIN);
-            if (LEDReading == HIGH)
-            {
-              client.print("Red led is on<br><br>");
-            }
-            else
-            {
-              client.print("Red LED is off<br><br>");
-            }
-
-            client.print("Click <a href=\"H\">here</a> turn the LED on<br>");
-            client.print("Click <a href=\"L\">here</a> turn the LED off<br>");
-
-            //HERE
+            float pres = bmp.readPressure() / 100.0F;
+            client.printf("<div class='reading'>BMP280: %.2f &deg;C, %.1f hPa</div>", temp, pres);
+            client.println("</div>");   // close .box
+            client.println("</body>");
             client.println("</html>");
+            
+            //HERE
+           
             break;
           }
           else
@@ -194,15 +181,6 @@ void loop()
         else if (c != '\r')
         {
           currentLine += c;
-        }
-
-        if (currentLine.endsWith("GET /H"))
-        {
-          digitalWrite(LEDPIN, HIGH); // GET /H turns the LED on
-        }
-        if (currentLine.endsWith("GET /L"))
-        {
-          digitalWrite(LEDPIN, LOW); // GET /L turns the LED off
         }
       }
     }
