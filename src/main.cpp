@@ -111,20 +111,21 @@ void setup()
 
 // loop for manual client handling
 void loop()
-{
+{ //check if anyone connects to the ESP32
   WiFiClient client = manualServer.available(); // Changed to match correct server
  // Serial.println(client);
   if (client)
   {
     Serial.println("new client");
-
+    //varialbe to hold any incoming data from the browser/client
     String currentLine = "";
-
+    
+    //while they are connected
     while (client.connected())
     {
       if (client.available())
       {
-        // another variable to hold any incoming
+        // another variable to hold any incoming data from browser/client
         char c = client.read();
         Serial.write(c);
 
@@ -152,7 +153,7 @@ void loop()
             client.println("<style>");
 
             client.println("body {background-color:#1e1e2f; font-family: Arial; color: white; display: flex; flex-direction: column; align-items: center; padding: 20px; }");
-            client.println(".box { background-color: #2a2a40; padding: 20px border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0,3); text-align center; width: 300px;}");
+            client.println(".box { background-color: #2a2a40; padding: 20px border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); text-align center; width: 300px; }");
             client.println(".reading { font-size: 28px; margin: 10px 0; }");
 
             client.println("</style>");
@@ -160,12 +161,21 @@ void loop()
             
             client.println("<body>"); //html structure
             
+            client.println("<div> class ='navbar'><h1>PC Ambient Monitor</h1></div>");
+            client.println(".navbar {width: 100%: background-color: #3a3a55}; padding: 10px 0; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }");
+            client.println(".navbar h1 {margin:0; font-size: 24px: color: #ffffff; }");
+            
             client.println("<div class= 'box'>");
-            client.println("<h2>PC Ambient Monitor</h2>");
+            client.println("<h2>Enviroment</h2>");
+            
+    
             float temp = bmp.readTemperature();
             float pres = bmp.readPressure() / 100.0F;
-            client.printf("<div class='reading'>BMP280: %.2f &deg;C, %.1f hPa</div>", temp, pres);
+            client.printf("<div class='reading'>BMP280: %.2f &deg;C</div>", temp);
+            client.printf("<div class='reading'>Pressure: %.1f hPa</div>", pres);
             client.println("</div>");   // close .box
+            
+            
             client.println("</body>");
             client.println("</html>");
             
