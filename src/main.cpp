@@ -10,8 +10,8 @@
 #include "arduino_secrets.h" //defined SSID/password in this library
 //////////////////////////////////
 // Variables for my network and wifi status
-const char SSID[] = "T8-Arduino";
-const char PASSWORD[] = "T8-Arduino";
+const char SSID[] = "AX3000";
+const char PASSWORD[] = "LemontIselin49BI"; //T8-Arduino
 ///////////////////////////////////
 
 // Create AsyncWebServer object on port 80
@@ -36,6 +36,7 @@ Adafruit_BMP280 bmp; //BMP280 connect to ESP =32 I2C (GPIO 21 = SDA, GPIO)
 
 const byte LEDPIN = LED_BUILTIN; 
 String ledState;
+
 
 //---------------------------------------------
 void initBMP()
@@ -113,12 +114,17 @@ void setup()
 void loop()
 { //check if anyone connects to the ESP32
   WiFiClient client = manualServer.available(); // Changed to match correct server
- // Serial.println(client);
+ 
+
+  // Serial.println(client);
   if (client)
   {
     Serial.println("new client");
     //varialbe to hold any incoming data from the browser/client
     String currentLine = "";
+      if (currentLine.indexOf("GET /led/toggle") >= 0) {
+      digitalWrite(LEDPIN, !digitalRead(LEDPIN));
+}
     
     //while they are connected
     while (client.connected())
@@ -149,33 +155,49 @@ void loop()
             client.println("<meta charset='UTF-8'>");
             client.println("<meta name='viewport' content='width=device-width, initial-scale=1'>");
             client.println("<title>PC AMBIENT MONITOR</title>");
-            
-            client.println("<style>");
-
-            client.println("body {background-color:#1e1e2f; font-family: Arial; color: white; display: flex; flex-direction: column; align-items: center; padding: 20px; }");
-            client.println(".box { background-color: #2a2a40; padding: 20px border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); text-align center; width: 300px; }");
-            client.println(".reading { font-size: 28px; margin: 10px 0; }");
-
-            client.println("</style>");
-            client.println("</head>"); //html structure
-            
-            client.println("<body>"); //html structure
-            
-            client.println("<div> class ='navbar'><h1>PC Ambient Monitor</h1></div>");
-            client.println(".navbar {width: 100%: background-color: #3a3a55}; padding: 10px 0; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }");
-            client.println(".navbar h1 {margin:0; font-size: 24px: color: #ffffff; }");
-            
-            client.println("<div class= 'box'>");
-            client.println("<h2>Enviroment</h2>");
-            
     
+            client.println("<style>"); //html structure
+            
+            client.println("body {font-family: Arial; margin:0; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; transistion: 0.3s, color 0.3s }");
+            //Dark and light ui options
+            client.println(".dark { background-color: #1e1e2f; color: white; }");
+            client.println(".light { background-color: #f4f4f4; color: black; }");
+            
+            client.println(".navbar {width: 100%; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); text-align: center; width 300px; }");
+            client.println(".box { background-color: #2a2a40; color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); text-align: center; width: 300px; }");
+
+            client.println(".reading { font-size: 28px; margin: 10px 0; }");
+            client.println("button {padding: 10px 20px; margin: 10px 0; }");
+            client.println("</style>"); //html
+            client.println("</head>"); //html structure
+            client.println("<body>"); //html structure
+            client.println("<body class='dark'>");
+            client.println("<div class='navbar'><h1>PC Ambient Monitor</h1></div>");
+            client.println("<div class='box'>");
+            
+            //client.println(".navbar h1 {margin:0; font-size: 24px: color: #ffffff; }");
+           // client.println("<div class ='navbar'><h1>PC Ambient Monitor</h1></div>");
+
             float temp = bmp.readTemperature();
             float pres = bmp.readPressure() / 100.0F;
             client.printf("<div class='reading'>BMP280: %.2f &deg;C</div>", temp);
             client.printf("<div class='reading'>Pressure: %.1f hPa</div>", pres);
-            client.println("</div>");   // close .box
             
+            //new toggle leds button
             
+            client.println("<button onclick=\"toggleLED()\">Toggle LED</button>");
+            client.println("<button onclick=\"toggleTheme()\">Toggle Theme</button>");
+
+        
+            client.println("</div>");
+
+            client.println("<script>");
+
+            client.println("function toggleLED(){ fetch('/led/toggle'); }");
+            client.println("function toggleTheme(){ document.body.classList.toggle('dark'); localStorage.setItem('theme', document.body.className); }");
+            client.println("window.onload = function(){ let theme = localStorage.getItem('theme'); if(theme){ document.body.className = theme; } }");
+            client.println("</script>");
+
             client.println("</body>");
             client.println("</html>");
             
