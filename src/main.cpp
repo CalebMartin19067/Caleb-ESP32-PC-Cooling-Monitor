@@ -1,27 +1,23 @@
 #include <Arduino.h>
 #include <WiFi.h>
-//#include <AsyncUDP.h>
-//#include <ESPAsyncWebServer.h> //drop AsyncWebServer for manual client handling only
 #include <Arduino_JSON.h>
 #include <Adafruit_BMP280.h>
 #include <Adafruit_Sensor.h>
-#include <Adafruit_AHTX0.h>
+#include <Adafruit_AHTX0.h> 
+#include <TFT_eSPI.h>  // Use TFT_eSPI for ESP32 reverse TFT
 
-#include "arduino_secrets.h" //defined SSID/password in this library
 //////////////////////////////////
 // Variables for my network and wifi status
 const char SSID[] = "AX3000";
 const char PASSWORD[] = "LemontIselin49BI"; //T8-Arduino
+const char SSID[] = "T8-Arduino";
+const char PASSWORD[] = "T8-Arduino"; //T8-Arduino
 ///////////////////////////////////
 
-// Create AsyncWebServer object on port 80
-//AsyncWebServer server(80);
-// Create event source on /events
-//AsyncEventSource events("/events");
-// Create a separate WiFi server for manual socket handling
+WiFiServer manualServer(80); 
+// Creates a simple socket server on port 80. Unlike AsyncWebServer,
+// this requires manually handling all HTTP parsing.
 
-
-WiFiServer manualServer(80); // Changed from server.available()
 
 // json variable to hold sensor readings
 JSONVar readings;
@@ -36,6 +32,10 @@ Adafruit_BMP280 bmp; //BMP280 connect to ESP =32 I2C (GPIO 21 = SDA, GPIO)
 
 const byte LEDPIN = LED_BUILTIN; 
 String ledState;
+
+//Set up the Fan on Pin 13
+const byte FANPIN = 13;
+String fanState;
 
 
 //---------------------------------------------
@@ -95,6 +95,9 @@ String processor(const String &VAR)
 // run start up code and server requests
 void setup()
 {
+  pinMode(FANPIN, OUTPUT);
+  digitalWrite(FANPIN, LOW); // start with fan off
+
   pinMode(LEDPIN, OUTPUT);
   Serial.begin(115200);
   while (!Serial)
@@ -122,9 +125,7 @@ void loop()
     Serial.println("new client");
     //varialbe to hold any incoming data from the browser/client
     String currentLine = "";
-      if (currentLine.indexOf("GET /led/toggle") >= 0) {
-      digitalWrite(LEDPIN, !digitalRead(LEDPIN));
-}
+      
     
     //while they are connected
     while (client.connected())
@@ -137,8 +138,13 @@ void loop()
 
         ///////////////////////////////////////
         // if browser sent a new line character
-        if (c == '\n')
-        {
+        if (c == '\n') {
+        if (currentLine.indexOf("GET /led/toggle") >= 0) {
+           digitalWrite(LEDPIN, !digitalRead(LEDPIN));
+        }
+        if (currentLine.indexOf("GET /fan/toggle") >= 0) {
+        digitalWrite(FANPIN, !digitalRead(FANPIN));
+        }
           if (currentLine.length() == 0)
           {
             // HTTP code for a webpage after some initial search
@@ -158,20 +164,21 @@ void loop()
     
             client.println("<style>"); //html structure
             
-            client.println("body {font-family: Arial; margin:0; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; transistion: 0.3s, color 0.3s }");
+            client.println("body {font-family: Arial; margin:0; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: 0.3s, color 0.3s }");
             //Dark and light ui options
             client.println(".dark { background-color: #1e1e2f; color: white; }");
             client.println(".light { background-color: #f4f4f4; color: black; }");
             
-            client.println(".navbar {width: 100%; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); text-align: center; width 300px; }");
+            client.println(".navbar {width: 100%; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); text-align: center; width: 300px; }");
             client.println(".box { background-color: #2a2a40; color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); text-align: center; width: 300px; }");
 
             client.println(".reading { font-size: 28px; margin: 10px 0; }");
             client.println("button {padding: 10px 20px; margin: 10px 0; }");
             client.println("</style>"); //html
             client.println("</head>"); //html structure
-            client.println("<body>"); //html structure
+            
             client.println("<body class='dark'>");
+            
             client.println("<div class='navbar'><h1>PC Ambient Monitor</h1></div>");
             client.println("<div class='box'>");
             
@@ -183,20 +190,23 @@ void loop()
             client.printf("<div class='reading'>BMP280: %.2f &deg;C</div>", temp);
             client.printf("<div class='reading'>Pressure: %.1f hPa</div>", pres);
             
-            //new toggle leds button
+            //Buttons
             
             client.println("<button onclick=\"toggleLED()\">Toggle LED</button>");
             client.println("<button onclick=\"toggleTheme()\">Toggle Theme</button>");
+            client.println("<button onclick=\"toggleFan()\">Toggle Fan</button>");
+
 
         
             client.println("</div>");
 
-            client.println("<script>");
-
+            client.println("<script>"); //====SCRIPT====
+           
+            client.println("function toggleFan(){ fetch('/fan/toggle'); }");
             client.println("function toggleLED(){ fetch('/led/toggle'); }");
             client.println("function toggleTheme(){ document.body.classList.toggle('dark'); localStorage.setItem('theme', document.body.className); }");
             client.println("window.onload = function(){ let theme = localStorage.getItem('theme'); if(theme){ document.body.className = theme; } }");
-            client.println("</script>");
+            client.println("</script>"); //==SCRIPT====
 
             client.println("</body>");
             client.println("</html>");
@@ -220,4 +230,3 @@ void loop()
     Serial.println("client disconnected");
   }
 }
- 
