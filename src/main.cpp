@@ -7,11 +7,10 @@
 #include <TFT_eSPI.h>  // Use TFT_eSPI for ESP32 reverse TFT
 
 //////////////////////////////////
-// Variables for my network and wifi status
-const char SSID[] = "AX3000";
-const char PASSWORD[] = "LemontIselin49BI"; //T8-Arduino
-const char SSID[] = "T8-Arduino";
-const char PASSWORD[] = "T8-Arduino"; //T8-Arduino
+//Wifi Network Configuration
+//change these to match your nework
+const char SSID[] = "T8-Arduino";  
+const char PASSWORD[] = "T8-Arduino"; 
 ///////////////////////////////////
 
 WiFiServer manualServer(80); 
@@ -22,36 +21,34 @@ WiFiServer manualServer(80);
 // json variable to hold sensor readings
 JSONVar readings;
 
-// timer variables 
-unsigned long lastTime = 0;
-unsigned long timerDelay = 30000;
-// Routing the LEDPIN to the onboard LED on ESP32=
 // create a sensor object
 Adafruit_AHTX0 aht;
 Adafruit_BMP280 bmp; //BMP280 connect to ESP =32 I2C (GPIO 21 = SDA, GPIO)
 
-const byte LEDPIN = LED_BUILTIN; 
+const byte LEDPIN = LED_BUILTIN; //Built-in LED (onboard ESP32 LED)
 String ledState;
 
 //Set up the Fan on Pin 13
-const byte FANPIN = 13;
+const byte FANPIN = 13; //GPIO 13 for a fan
 String fanState;
 
 
 //---------------------------------------------
+//Initialise BMP280 sensor
 void initBMP()
 {
-  if (!bmp.begin(0x77)) // what does 0x77 signal? - the I2C address of the BMP280 sensor.
+  //0x77 is the defualt I2C address for the BMP280 sensor
+  // If wiring is wrong or the sensor is unconnected,.begin() will fail
+  if (!bmp.begin(0x77)) 
   {
-    Serial.println("Couldn't find the BMP280 sensor, check wiring!");
-    while (1); // what does this while loop do? and why would we do it?
-  }
+    Serial.println("Couldn't find the BMP280 sensor, check wiring!"); 
+  }  //no infinite loop here so program will just continue without a BMP280 sensor
 }
 
 // Retrieve Sensor readings and return JSON object
 String getSensorReadings()
 {
-  readings["temperature"] = String(bmp.readTemperature() / 2);
+  readings["temperature"] = String(bmp.readTemperature() / 2); //Needs to be divided by 2, unsure why
   String jsonString = JSON.stringify(readings);
   return jsonString;
 }
@@ -59,22 +56,21 @@ String getSensorReadings()
 // initialize Wifi
 void initWifi()
 {
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(SSID, PASSWORD);
-  Serial.print("Connecting to Wifi....");
-  while (WiFi.status() != WL_CONNECTED)
+  WiFi.mode(WIFI_STA);    //Station mode, where the ESP32 connects to a router
+  WiFi.begin(SSID, PASSWORD); //SSID and password that were stored as constants
+  Serial.print("Connecting to Wifi...."); 
+  while (WiFi.status() != WL_CONNECTED) //Loop until connected
   {
-    Serial.print('.');
+    Serial.print('.');   //every 1 second paste a "." so it shows its waiting still trying to connect
     delay(1000);
-  }
-  Serial.println("Connected to ");
+  } //Once connected print the SSID, and device IP address
+  Serial.println("Connected to ");  
   Serial.println(SSID);
-  Serial.print("Use http://");
+  Serial.print("Use http://"); //URL to paste into browser
   Serial.println(WiFi.localIP());
 }
 
 // Return the state of the physical LED when called on
-// change
 String processor(const String &VAR)
 {
   if (VAR == "STATE")
@@ -92,30 +88,32 @@ String processor(const String &VAR)
   return String();
 }
 
+//------------------------------------------------
 // run start up code and server requests
 void setup()
 {
-  pinMode(FANPIN, OUTPUT);
+  pinMode(FANPIN, OUTPUT);  //Set fan pin as output
   digitalWrite(FANPIN, LOW); // start with fan off
 
-  pinMode(LEDPIN, OUTPUT);
-  Serial.begin(115200);
+  pinMode(LEDPIN, OUTPUT); //Set LED pin as output
+  Serial.begin(115200); //Start serial monitor for debugging
   while (!Serial)
   {
     delay(5000); // to let serial catch up
   }
 
-  initWifi();
+  initWifi(); // Connect to Wifi
   //server.begin();
   manualServer.begin(); // Start the manual socket server
-  initBMP();
-  pinMode(LEDPIN, OUTPUT);
-  delay(5000);
+  initBMP(); // Initialise BMP280
+  pinMode(LEDPIN, OUTPUT); 
+  delay(5000); //Startup delay for reliability
 }
 
+//---------------------------------------
 // loop for manual client handling
 void loop()
-{ //check if anyone connects to the ESP32
+{ //check if anyone has cconnected to the ESP32
   WiFiClient client = manualServer.available(); // Changed to match correct server
  
 
@@ -124,7 +122,7 @@ void loop()
   {
     Serial.println("new client");
     //varialbe to hold any incoming data from the browser/client
-    String currentLine = "";
+    String currentLine = ""; //Holds the currentline of HTTP request
       
     
     //while they are connected
@@ -133,28 +131,32 @@ void loop()
       if (client.available())
       {
         // another variable to hold any incoming data from browser/client
-        char c = client.read();
-        Serial.write(c);
+        char c = client.read(); //Read on character at a time
+        Serial.write(c); // Print raw requestr to serial for debugging
 
         ///////////////////////////////////////
         // if browser sent a new line character
-        if (c == '\n') {
+        if (c == '\n')
+         { 
+          //Check if request was for toggling LED or FAN
         if (currentLine.indexOf("GET /led/toggle") >= 0) {
-           digitalWrite(LEDPIN, !digitalRead(LEDPIN));
+           digitalWrite(LEDPIN, !digitalRead(LEDPIN)); //Toggle LED state
         }
-        if (currentLine.indexOf("GET /fan/toggle") >= 0) {
+        if (currentLine.indexOf("GET /fan/toggle") >= 0) {   //Toggle fan state
         digitalWrite(FANPIN, !digitalRead(FANPIN));
         }
+        //If line is empty, it means end of HTTP request header
           if (currentLine.length() == 0)
           {
             // HTTP code for a webpage after some initial search
-            client.println("HTTP/1.1 200 OK");
+            client.println("HTTP/1.1 200 OK");  
             client.println("Content-Type: text/html");
             client.println("Connection: close");
             client.println("Refresh: 5"); //auto-refresh page every 5 seconds
             client.println();
             client.println("<!DOCTYPE HTML>"); 
-            //HERE
+            
+            //HtML webpage
             client.println("<html>"); //html structure
             client.println("<head>"); //html structure
             //<head contains title and styles
@@ -162,46 +164,38 @@ void loop()
             client.println("<meta name='viewport' content='width=device-width, initial-scale=1'>");
             client.println("<title>PC AMBIENT MONITOR</title>");
     
+            //CSS styling 
             client.println("<style>"); //html structure
-            
             client.println("body {font-family: Arial; margin:0; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: 0.3s, color 0.3s }");
             //Dark and light ui options
             client.println(".dark { background-color: #1e1e2f; color: white; }");
             client.println(".light { background-color: #f4f4f4; color: black; }");
-            
             client.println(".navbar {width: 100%; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); text-align: center; width: 300px; }");
             client.println(".box { background-color: #2a2a40; color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); text-align: center; width: 300px; }");
-
             client.println(".reading { font-size: 28px; margin: 10px 0; }");
             client.println("button {padding: 10px 20px; margin: 10px 0; }");
             client.println("</style>"); //html
             client.println("</head>"); //html structure
             
+            // Start of HTML body (defualts to dark theme)
             client.println("<body class='dark'>");
-            
             client.println("<div class='navbar'><h1>PC Ambient Monitor</h1></div>");
             client.println("<div class='box'>");
             
-            //client.println(".navbar h1 {margin:0; font-size: 24px: color: #ffffff; }");
-           // client.println("<div class ='navbar'><h1>PC Ambient Monitor</h1></div>");
-
+            // Display BMP280 readings
             float temp = bmp.readTemperature();
             float pres = bmp.readPressure() / 100.0F;
             client.printf("<div class='reading'>BMP280: %.2f &deg;C</div>", temp);
             client.printf("<div class='reading'>Pressure: %.1f hPa</div>", pres);
             
-            //Buttons
-            
+            //Buttons for LED theme, and FAN
             client.println("<button onclick=\"toggleLED()\">Toggle LED</button>");
             client.println("<button onclick=\"toggleTheme()\">Toggle Theme</button>");
             client.println("<button onclick=\"toggleFan()\">Toggle Fan</button>");
-
-
-        
             client.println("</div>");
 
+            // JavaScript for button actions
             client.println("<script>"); //====SCRIPT====
-           
             client.println("function toggleFan(){ fetch('/fan/toggle'); }");
             client.println("function toggleLED(){ fetch('/led/toggle'); }");
             client.println("function toggleTheme(){ document.body.classList.toggle('dark'); localStorage.setItem('theme', document.body.className); }");
@@ -211,22 +205,22 @@ void loop()
             client.println("</body>");
             client.println("</html>");
             
-            //HERE
+          
            
-            break;
+            break;  //Exit loop after serving page
           }
           else
           {
-            currentLine = "";
+            currentLine = ""; // Reset line buffer
           }
         }
         else if (c != '\r')
         {
-          currentLine += c;
+          currentLine += c; // Add character to currentLine (building the HTTP request )
         }
       }
     }
-    client.stop();
+    client.stop(); // Close connection after serving response
     Serial.println("client disconnected");
   }
 }
