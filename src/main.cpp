@@ -9,8 +9,8 @@
 //////////////////////////////////
 //Wifi Network Configuration
 //change these to match your nework
-const char SSID[] = "T8-Arduino";  
-const char PASSWORD[] = "T8-Arduino"; 
+const char SSID[] = "AX3000";  
+const char PASSWORD[] = "LemontIselin49BI"; 
 ///////////////////////////////////
 
 WiFiServer manualServer(80); 
@@ -42,14 +42,36 @@ void initBMP()
   if (!bmp.begin(0x77)) 
   {
     Serial.println("Couldn't find the BMP280 sensor, check wiring!"); 
-  }  //no infinite loop here so program will just continue without a BMP280 sensor
+  } else {
+    Serial.println("BMP280 sensor found and initialised.");
+    bmp.readTemperature();
+  } //no infinite loop here so program will just continue without a BMP280 sensor
+}
+
+// Initialise AHT sensor
+void initAHT() {
+  if (!aht.begin()) {
+    Serial.println("Couldn't find the AHT sensor, check wiring!");
+  } else {
+    Serial.println("AHT sensor found and initialised.");
+    sensors_event_t humidity, temperature;
+    aht.getEvent(&humidity, &temperature); // dummy read (to help the sensor wake up first)
+  }
 }
 
 // Retrieve Sensor readings and return JSON object
 String getSensorReadings()
 {
-  readings["temperature"] = String(bmp.readTemperature() / 2); //Needs to be divided by 2, unsure why
-  String jsonString = JSON.stringify(readings);
+  readings["temperature"] = String(bmp.readTemperature()); //Needs to be divided by 2, unsure why
+  readings["pressure"] = String(bmp.readPressure() / 100.0F); // BMP280 pressure
+  
+  //Add AHT humitidy and temperature to JSON
+  sensors_event_t humidity, temperature;
+  aht.getEvent(&humidity, &temperature);
+  readings["aht_temp"] = String(temperature.temperature);
+  readings["humidity"] = String(humidity.relative_humidity);
+  
+  String jsonString = JSON.stringify(readings);     
   return jsonString;
 }
 
@@ -106,7 +128,8 @@ void setup()
   //server.begin();
   manualServer.begin(); // Start the manual socket server
   initBMP(); // Initialise BMP280
-  pinMode(LEDPIN, OUTPUT); 
+  initAHT(); // Initialise AHT sensor
+  
   delay(5000); //Startup delay for reliability
 }
 
@@ -187,6 +210,12 @@ void loop()
             float pres = bmp.readPressure() / 100.0F;
             client.printf("<div class='reading'>BMP280: %.2f &deg;C</div>", temp);
             client.printf("<div class='reading'>Pressure: %.1f hPa</div>", pres);
+
+            // Display AHT readings
+            sensors_event_t humidity, temperature;
+            aht.getEvent(&humidity, &temperature);  // populate temp and humidity objects
+            client.printf("<div class='reading'>AHT Temp: %.2f &deg;C</div>", temperature.temperature);
+            client.printf("<div class='reading'>Humidity: %.1f %%</div>", humidity.relative_humidity);
             
             //Buttons for LED theme, and FAN
             client.println("<button onclick=\"toggleLED()\">Toggle LED</button>");
