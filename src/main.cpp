@@ -127,7 +127,9 @@ void setup()
   initWifi(); // Connect to Wifi
   //server.begin();
   manualServer.begin(); // Start the manual socket server
+  delay(50);
   initBMP(); // Initialise BMP280
+  delay(50);
   initAHT(); // Initialise AHT sensor
   
   delay(5000); //Startup delay for reliability
@@ -186,13 +188,21 @@ void loop()
             client.println("<meta charset='UTF-8'>");
             client.println("<meta name='viewport' content='width=device-width, initial-scale=1'>");
             client.println("<title>PC AMBIENT MONITOR</title>");
-    
+            
+            //added this script at the beggining to apply the saved theme early
+            client.println("<script>");
+            client.println("(function(){");
+            client.println(" var theme = localStorage.getItem('theme');");
+            client.println(" if(theme){ document.documentElement.className = theme; }");
+            client.println("})();");
+            client.println("</script>");
+            
             //CSS styling 
             client.println("<style>"); //html structure
             client.println("body {font-family: Arial; margin:0; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: 0.3s, color 0.3s }");
             //Dark and light ui options
-            client.println(".dark { background-color: #1e1e2f; color: white; }");
-            client.println(".light { background-color: #f4f4f4; color: black; }");
+            client.println("html.dark { background-color: #1e1e2f; color: white; }");
+            client.println("html.light { background-color: #f4f4f4; color: black; }");
             client.println(".navbar {width: 100%; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); text-align: center; width: 300px; }");
             client.println(".box { background-color: #2a2a40; color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); text-align: center; width: 300px; }");
             client.println(".reading { font-size: 28px; margin: 10px 0; }");
@@ -200,8 +210,8 @@ void loop()
             client.println("</style>"); //html
             client.println("</head>"); //html structure
             
-            // Start of HTML body (defualts to dark theme)
-            client.println("<body class='dark'>");
+            // Start of HTML body (this stops the server from forcing the dark theme everytime
+            client.println("<body>");
             client.println("<div class='navbar'><h1>PC Ambient Monitor</h1></div>");
             client.println("<div class='box'>");
             
@@ -227,7 +237,10 @@ void loop()
             client.println("<script>"); //====SCRIPT====
             client.println("function toggleFan(){ fetch('/fan/toggle'); }");
             client.println("function toggleLED(){ fetch('/led/toggle'); }");
-            client.println("function toggleTheme(){ document.body.classList.toggle('dark'); localStorage.setItem('theme', document.body.className); }");
+            client.print("function toggleTheme(){");
+            client.println(" var newTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';");
+            client.println("localStorage.setItem('theme', newTheme);");
+            client.println("}");
             client.println("window.onload = function(){ let theme = localStorage.getItem('theme'); if(theme){ document.body.className = theme; } }");
             client.println("</script>"); //==SCRIPT====
 
