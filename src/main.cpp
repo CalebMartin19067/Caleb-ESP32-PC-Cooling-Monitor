@@ -1,10 +1,10 @@
+//Include required libraries for the ESP32, WiFi, and sensor drivers  
 #include <Arduino.h>
 #include <WiFi.h>
 #include <Arduino_JSON.h>
 #include <Adafruit_BMP280.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_AHTX0.h> 
-#include <TFT_eSPI.h>  // Use TFT_eSPI for ESP32 reverse TFT
 
 //////////////////////////////////
 //Wifi Network Configuration
@@ -21,17 +21,16 @@ WiFiServer manualServer(80);
 // json variable to hold sensor readings
 JSONVar readings;
 
-// create a sensor object
+// create sensor objects for the AHT and BMP sensors
 Adafruit_AHTX0 aht;
 Adafruit_BMP280 bmp; //BMP280 connect to ESP =32 I2C (GPIO 21 = SDA, GPIO)
 
+///// Define GPIO pins ///////
 const byte LEDPIN = LED_BUILTIN; //Built-in LED (onboard ESP32 LED)
-String ledState;
-
-//Set up the Fan on Pin 13
 const byte FANPIN = 13; //GPIO 13 for a fan
+String ledState;
 String fanState;
-
+//////////////////////////////
 
 //---------------------------------------------
 //Initialise BMP280 sensor
@@ -125,9 +124,9 @@ void setup()
   }
 
   initWifi(); // Connect to Wifi
-  //server.begin();
   manualServer.begin(); // Start the manual socket server
-  delay(50);
+
+  delay(50); //Warm up each sensor one at a time before initialising
   initBMP(); // Initialise BMP280
   delay(50);
   initAHT(); // Initialise AHT sensor
@@ -156,7 +155,7 @@ void loop()
       if (client.available())
       {
         // another variable to hold any incoming data from browser/client
-        char c = client.read(); //Read on character at a time
+        char c = client.read(); //Read one character at a time
         Serial.write(c); // Print raw requestr to serial for debugging
 
         ///////////////////////////////////////
@@ -181,7 +180,7 @@ void loop()
             client.println();
             client.println("<!DOCTYPE HTML>"); 
             
-            //HtML webpage
+            // Serve a simple HTML page with sensor readings and control buttons
             client.println("<html>"); //html structure
             client.println("<head>"); //html structure
             //<head contains title and styles
@@ -216,15 +215,15 @@ void loop()
             client.println("<div class='box'>");
             
             // Display BMP280 readings
-            float temp = bmp.readTemperature();
+            float temp = bmp.readTemperature(); 
             float pres = bmp.readPressure() / 100.0F;
-            client.printf("<div class='reading'>BMP280: %.2f &deg;C</div>", temp);
+            client.printf("<div class='reading'>Temp (1): %.2f &deg;C</div>", temp);
             client.printf("<div class='reading'>Pressure: %.1f hPa</div>", pres);
 
             // Display AHT readings
             sensors_event_t humidity, temperature;
             aht.getEvent(&humidity, &temperature);  // populate temp and humidity objects
-            client.printf("<div class='reading'>AHT Temp: %.2f &deg;C</div>", temperature.temperature);
+            client.printf("<div class='reading'>Temp (2): %.2f &deg;C</div>", temperature.temperature);
             client.printf("<div class='reading'>Humidity: %.1f %%</div>", humidity.relative_humidity);
             
             //Buttons for LED theme, and FAN
@@ -233,7 +232,7 @@ void loop()
             client.println("<button onclick=\"toggleFan()\">Toggle Fan</button>");
             client.println("</div>");
 
-            // JavaScript for button actions
+            // JavaScript functions to send fetch requests for toggling LED, fan, and theme
             client.println("<script>"); //====SCRIPT====
             client.println("function toggleFan(){ fetch('/fan/toggle'); }");
             client.println("function toggleLED(){ fetch('/led/toggle'); }");
@@ -247,8 +246,6 @@ void loop()
             client.println("</body>");
             client.println("</html>");
             
-          
-           
             break;  //Exit loop after serving page
           }
           else
