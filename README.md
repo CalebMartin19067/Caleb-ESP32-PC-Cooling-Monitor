@@ -18,9 +18,10 @@ A compact ambient system using the ESP32-S3 to monitor temperature and humidity 
 - Power source via USB C
 
 ## How to Run the Project:
-
+- Connect the combined AHT/BMP sensor module to power, SDA and SCL 
 - Connect the ESP32-S3 to your PC via USB-C.
-- Open the project in PlatformIO or Arduino IDE.
+- Change the WiFi SSID and password to match your network
+- Open the project in PlatformIO
 - Upload the code to the board.
 - Open the Serial Monitor at 115200 baud to view the IP address.
 - Connect to the same WiFi network as the ESP32.
