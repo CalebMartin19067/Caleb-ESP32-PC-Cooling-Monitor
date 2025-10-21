@@ -28,6 +28,17 @@ A compact ambient system using the ESP32-S3 to monitor temperature and humidity 
 - Open a browser, enter the IP address shown in the Serial Monitor.
 - Interact with the web interface to view sensor readings and toggle outputs.
 
+## Attribution
+This project uses the following open‑source libraries:
+- Arduino Core (Arduino.h) – LGPL 2.1
+- ESP32 WiFi (WiFi.h) – LGPL 2.1
+- Arduino_JSON – MIT License
+- Adafruit BMP280 / Adafruit Sensor – BSD License
+- Adafruit AHTX0 – BSD License
+- TFT_eSPI – MIT License
+All libraries are open source and freely available. They are used here under their respective permissive licenses, which allow free use and modification provided credit is given to the original authors.
+
+
 
 
 
